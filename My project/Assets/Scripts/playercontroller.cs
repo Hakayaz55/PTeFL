@@ -53,4 +53,9 @@ public class mainplayercontroler : MonoBehaviour
             animator.SetBool("run", false);
         }
     }
+    
+    public bool canAttack()
+    {
+        return horizontalInput == 0 ();
+    }
 }
