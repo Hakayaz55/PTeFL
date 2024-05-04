@@ -1,61 +1,52 @@
+﻿using System.Collections;
 using UnityEngine;
 
-public class mainplayercontroler : MonoBehaviour
+public class PlayerMovement : MonoBehaviour
 {
-    public Animator animator; // Karakterin Animator bileşeni
-    private Rigidbody2D rb; // Karakterin Rigidbody2D bileşeni
-    private Vector3 velocity;
-    private float speedAmount = 5f;
-    private float jumpForce = 7f; // Zıplama gücü
+    [SerializeField] private float speed;
+    [SerializeField] private float jumpPower;
+    private Rigidbody2D body;
+    private Animator anim;
+    private BoxCollider2D boxCollider;
+    private float horizontalInput;
 
-    void Start()
+     private void Awake()
     {
-        // Rigidbody2D bileşenini alıyoruz
-        rb = GetComponent<Rigidbody2D>();
-        animator = GetComponent<Animator>();
+        //Grab references for rigidbody and animator from object
+        body = GetComponent<Rigidbody2D>();
+        anim = GetComponent<Animator>();
+        boxCollider = GetComponent<BoxCollider2D>();
     }
-
-    void Update()
+    private void Update()
     {
-        // Hareket kontrolü için kullanıcı girdilerini alıyoruz
-        float moveHorizontal = Input.GetAxis("Horizontal");
-        velocity = new Vector3(moveHorizontal, 0f, 0f);
+        horizontalInput = Input.GetAxis("Horizontal");
+
+        //Flip player when moving left-right
+        if (horizontalInput > 0.01f)
+            transform.localScale = Vector3.one;
+        else if (horizontalInput < -0.01f)
+            transform.localScale = new Vector3(-1, 1, 1);
+
+        //Set animator parameters
+        anim.SetBool("run", horizontalInput != 0);
+
+        private void Jump()
+       {
+            body.velocity = new Vector2(body.velocity.x, jumpPower);
+            anim.SetTrigger("jump");
         
-        // Hareketi karakterin pozisyonuna uyguluyoruz
-        transform.position += velocity * speedAmount * Time.deltaTime;
-        
-        // Hız değişkenini animatöre ayarlıyoruz
-        animator.SetFloat("speed", Mathf.Abs(moveHorizontal));
 
-        // Karakterin yönünü kontrol ediyoruz
-        if (moveHorizontal < 0)
-        {
-            transform.rotation = Quaternion.Euler(0f, 180f, 0f);
-        }
-        else if (moveHorizontal > 0)
-        {
-            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
-        }
+            if (horizontalInput == 0)
+            {
+                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 10, 0);
+                transform.localScale = new Vector3(-Mathf.Sign(transform.localScale.x), transform.localScale.y, transform.localScale.z);
+            }
+            else
+                body.velocity = new Vector2(-Mathf.Sign(transform.localScale.x) * 3, 6);
 
-        // Zıplama kontrolü
-        if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.001f)
-        {
-            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
         }
-
-        // Karakterin hareket edip etmediğini kontrol ediyoruz
-        if (Mathf.Abs(moveHorizontal) > 0)
-        {
-            animator.SetBool("run", true);
-        }
-        else
-        {
-            animator.SetBool("run", false);
-        }
+        private bool canAttack()
+       {
+            return horizontalInput == 0 && isGrounded() && !onWall();
+       }
     }
-    
-    public bool canAttack()
-    {
-        return horizontalInput == 0 ();
-    }
-}
