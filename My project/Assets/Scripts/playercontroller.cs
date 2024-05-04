@@ -2,33 +2,55 @@ using UnityEngine;
 
 public class mainplayercontroler : MonoBehaviour
 {
-    public  Animator animator; // Karakterin Animator bileşeni
-    Rigidbody2D rb; // Karakterin Rigidbody2D bileşeni
-    Vector3 velocity;
-    float speedAmount = 4f;
-        
+    public Animator animator; // Karakterin Animator bileşeni
+    private Rigidbody2D rb; // Karakterin Rigidbody2D bileşeni
+    private Vector3 velocity;
+    private float speedAmount = 5f;
+    private float jumpForce = 7f; // Zıplama gücü
 
     void Start()
     {
         // Rigidbody2D bileşenini alıyoruz
         rb = GetComponent<Rigidbody2D>();
         animator = GetComponent<Animator>();
-
     }
 
     void Update()
     {
-        velocity = new Vector3(Input.GetAxis("Horizontal"), 0f);
-        transform.position += velocity*speedAmount*Time.deltaTime;
-        animator.SetFloat("speed",Mathf.Abs(Input.GetAxis("Horizontal")));
+        // Hareket kontrolü için kullanıcı girdilerini alıyoruz
+        float moveHorizontal = Input.GetAxis("Horizontal");
+        velocity = new Vector3(moveHorizontal, 0f, 0f);
+        
+        // Hareketi karakterin pozisyonuna uyguluyoruz
+        transform.position += velocity * speedAmount * Time.deltaTime;
+        
+        // Hız değişkenini animatöre ayarlıyoruz
+        animator.SetFloat("speed", Mathf.Abs(moveHorizontal));
 
-        if (Input.GetAxisRaw("Horizontal") == -1)
+        // Karakterin yönünü kontrol ediyoruz
+        if (moveHorizontal < 0)
         {
-            transform.rotation = Quaternion.Euler(0f,180f,0f);
+            transform.rotation = Quaternion.Euler(0f, 180f, 0f);
         }
-        else if(Input.GetAxisRaw("Horizontal") == 1)
+        else if (moveHorizontal > 0)
         {
-           transform.rotation = Quaternion.Euler(0f,0f,0f); 
+            transform.rotation = Quaternion.Euler(0f, 0f, 0f);
+        }
+
+        // Zıplama kontrolü
+        if (Input.GetButtonDown("Jump") && Mathf.Abs(rb.velocity.y) < 0.001f)
+        {
+            rb.AddForce(Vector2.up * jumpForce, ForceMode2D.Impulse);
+        }
+
+        // Karakterin hareket edip etmediğini kontrol ediyoruz
+        if (Mathf.Abs(moveHorizontal) > 0)
+        {
+            animator.SetBool("run", true);
+        }
+        else
+        {
+            animator.SetBool("run", false);
         }
     }
 }
